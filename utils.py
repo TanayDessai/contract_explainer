@@ -1,15 +1,16 @@
 import pdfplumber
 import pytesseract
+import streamlit as st  # Added Streamlit to access secrets
 from PIL import Image
-from google import genai  # Updated import
-import os
-from dotenv import load_dotenv
+from google import genai
+# import os          # No longer needed for the key
+# from dotenv import load_dotenv # No longer needed
 
-load_dotenv()
+# load_dotenv() # No longer needed
 
-# Initialize the new Client
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
+# Initialize the Client using st.secrets
+# Ensure the key name in your Streamlit Cloud dashboard is GEMINI_API_KEY
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def extract_text_from_pdf(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
@@ -18,10 +19,8 @@ def extract_text_from_pdf(pdf_path):
             text += page.extract_text() + "\n"
     return text
 
-
 def extract_text_from_image(image):
     return pytesseract.image_to_string(image)
-
 
 def explain_clause(clause, language):
     prompt = f"""
@@ -36,7 +35,9 @@ def explain_clause(clause, language):
     
     Clause: {clause}
     """
-
-    # Updated call for the 2025 SDK
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    
+    response = client.models.generate_content(
+        model='gemini-2.5-flash', 
+        contents=prompt
+    )
     return response.text
